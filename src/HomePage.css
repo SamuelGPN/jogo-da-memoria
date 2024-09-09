@@ -1,0 +1,65 @@
+body{
+    color: black;
+    background-color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    height: 100%; 
+    
+}
+.container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Garante que o container ocupe a altura mínima da tela */
+}
+header{
+    display: flex;
+    justify-content: center;
+}
+
+main{ /*O elemento <main> define o conteúdo principal dentro do <body> */
+    flex: 1; /* Faz o main crescer para ocupar o espaço restante */
+    padding: 1px;
+    margin: 7px; /* Para na ficar espaçamento nas laterais */
+}
+
+.sobre{
+    font-size: 16px;
+}
+
+.regras{
+    font-size: 16px;
+}
+
+.botao{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn{
+    border: none;
+    padding: 20px 40px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    margin: 10px 6px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+footer{
+    border-top: 1px solid black;
+    font-size: 13px;
+    color: white;
+    background: #343a40;
+}
+
+.rodape0{
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+.rodape1{    
+    display: flex;
+    justify-content: center;
+    text-align: center;
+
+}
