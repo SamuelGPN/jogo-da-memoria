@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./GamePage.css";
+import axios from 'axios';
 
 function GamePage() {
   const [inputValue, setImputValue] = useState(""); //Estado do input Nome
@@ -15,6 +16,25 @@ function GamePage() {
   const [clicadas, setClicadas] = useState([]); // Estado para armazenar as cartas clicadas
   const [paresEncontrados, setParesEncontrados] = useState([]); // Estado para armazenar os pares encontrados
   const [nCartas, setNCartas] = useState([]); //Estado para guardar o valor do numero de cartas
+
+
+  const [data, setData] = useState('');
+
+  // Mostra a lista de colocados
+  useEffect(() => {
+    axios.get('http://localhost:8080/api/jogo/hello')
+      .then(response => {
+        setData(response.data);
+      })
+      .catch(error => {
+        console.error("Erro ao buscar dados da API", error);
+      });
+  }, []);
+  
+
+
+
+
 
   //**  Input p/ digitar o nome */
   const handleImputChange = (event) => {
@@ -66,6 +86,8 @@ function GamePage() {
   //ATIVA o tempo do Jogo e Adiciona as cartas no jogo************
   const startTimerEJogo = () => {
     setIsActive(true); //Ativa o tempo do Jogo************
+
+
 
     //Adiciona o tanto de cartas na tela conforme o nivel
     const numCartas = [];
@@ -247,8 +269,17 @@ function GamePage() {
           <h3 className="textRank">
             <p>TOP 3 RANKING</p>
           </h3>
+          
+          <ol>
+            <li>{data}</li>
+            <li></li>
+            <li></li>
+          </ol>
+
+
+
           <p className="posicao" id="pos1">
-            1º -{" "}
+            1º -{data}
           </p>
           <p className="posicao" id="pos2">
             2º -{" "}
