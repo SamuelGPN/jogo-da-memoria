@@ -3,7 +3,7 @@ import "./GamePage.css";
 import axios from 'axios';
 
 function GamePage() {
-  const [inputValue, setImputValue] = useState(""); //Estado do input Nome
+  const [inputValue, setInputValue] = useState(""); //Estado do input Nome
   const [min, setMin] = useState(0); //Estado dos segundos
   const [seg, setSeg] = useState(0); //Estado dos minutos
   const [isActive, setIsActive] = useState(false); //Para ativar o timer
@@ -22,18 +22,27 @@ function GamePage() {
 
   // Mostra a lista de colocados
   useEffect(() => {
-    axios.get('http://localhost:8080/api/jogo/hello')
+    let getNivel;
+    if(nivel === 1){
+      getNivel = 'http://localhost:8080/api/jogo/hello?dificuldade=fácil';
+    }else if(nivel === 2){
+      getNivel = 'http://localhost:8080/api/jogo/hello?dificuldade=médio';
+    }else if(nivel === 3){
+      getNivel = 'http://localhost:8080/api/jogo/hello?dificuldade=difícil'
+    }else{
+
+    }
+    axios.get(getNivel)
       .then(response => {
+
         setData(response.data);
       })
+      
       .catch(error => {
+        console.log("Dados de erro recebidos:", error.response)       
         console.error("Erro ao buscar dados da API", error);
       });
-  }, []);
-  
-
-
-
+  }, [nivel]);
 
 
   //**  Input p/ digitar o nome */
@@ -44,18 +53,54 @@ function GamePage() {
         "Você não pode alterar o nome, [CONCLUA O JOGO] ou [RECARREGUE A PAGINA]"
       );
     } else {
-      setImputValue(event.target.value);
+      setInputValue(event.target.value);
     }
   };
 
   //********TEMPO DO JOGO */
   useEffect(() => {
     let intervalo = null;
+
     if (isActive && min < 60) {
       if (paresEncontrados.length > nCartas.length - 2) {
         //Condição para TERMINAR O JOGO***************
         setTimeout(() => {
           alert(`Fim de jogo - Seu tempo foi de ${min} minutos e ${seg} segundos`);
+          let nivels = "";
+          let segundos;
+
+          if(seg > 9){
+            segundos = seg;
+          }else{
+            segundos = `0${seg}`
+          }
+
+          if(nivel === 1){
+            nivels = 'fácil'
+          }else if(nivel === 2){
+            nivels = 'médio'
+          }else{
+            nivels = 'difícil'
+          }
+          let tempoJogoData = `${min}.${segundos}` //É o que vai ser salvo no banco de dados
+          let tempoJogoFormatado = `${min}min e ${segundos}seg`
+          axios.post('http://localhost:8080/saveRanking', { //Faz o envio dos dados para o BD
+            nome: inputValue,
+            tempo: tempoJogoData,
+            tempoFormatado: tempoJogoFormatado,
+            dificuldade: nivels,
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(function(response) {
+            console.log('Ranking salvo com sucesso:', response.data);
+        })
+        .catch(function(error) {
+            console.error('Erro ao salvar o ranking:', error);
+        });
+        
           setIsActive(false); // Desativa o tempo do Jogo************
           alert("O jogo será reinicializado");
           window.location.reload();
@@ -65,6 +110,7 @@ function GamePage() {
           //setInterval Função global do JavaScript
           setSeg((time) => time + 1); //Seta o intervalo de tempo em que sera acrescentado +1 no segundos
         }, 1000); //tempo em ms
+        
         if (seg > 9) {
           setNumS(""); //Esconde o zero a esquerda do segundos
           if (seg === 60) {
@@ -76,64 +122,84 @@ function GamePage() {
         if (min > 9) {
           setNumM(""); //Esconde o zero a esquerda dos minutos
         }
+        
       }
     } else if (!isActive && seg !== 0) {
       clearInterval(intervalo);
     }
+    
+    
     return () => clearInterval(intervalo);
-  }, [isActive, seg, min, nCartas, paresEncontrados]);
+  }, [nivel, inputValue, isActive, seg, min, nCartas, paresEncontrados]);
+
+  
+
+
+  
+  
+  // Chame a função saveRanking quando necessário, por exemplo, em um botão
+  // <button onClick={saveRanking}>Salvar Ranking</button>
+  
 
   //ATIVA o tempo do Jogo e Adiciona as cartas no jogo************
   const startTimerEJogo = () => {
-    setIsActive(true); //Ativa o tempo do Jogo************
+    if(isActive){
+      window.alert('VOCÊ JÁ ESTÁ JOGANDO, TERMINE O JOGO OU REINICIE A PÁGINA...')
+    }else{
+      setIsActive(true); //Ativa o tempo do Jogo************       
 
-
-
-    //Adiciona o tanto de cartas na tela conforme o nivel
-    const numCartas = [];
-    let maxCartas = 10;
-
-    if (nivel === 1) {
-      maxCartas = 10;
-    } else if (nivel === 2) {
-      maxCartas = 20;
-    } else if (nivel === 3) {
-      maxCartas = 30;
-    } else {
-      alert("Erro");
+      //Adiciona o tanto de cartas na tela conforme o nivel
+      const numCartas = [];
+      let maxCartas = 10;
+  
+      if (nivel === 1) {
+        maxCartas = 10;
+      } else if (nivel === 2) {
+        maxCartas = 20;
+      } else if (nivel === 3) {
+        maxCartas = 30;
+      } else {
+        alert("Erro");
+      }
+  
+      setItens([]); // Limpa o array de itens
+      setParesEncontrados([]); // Limpa os pares encontrados
+      setNCartas([]); //Limpa o numero de cartas
+  
+      for (let n = 1; n <= maxCartas; n++) {
+        numCartas.push(`/figuras/figura${n}.png`); //Cria um array com valores unicos
+      }
+  
+      // Duplicar as cartas (para um jogo de memória)
+      const cartasDuplicadas = [...numCartas, ...numCartas];
+  
+      // Embaralha o array de cartas duplicadas, a função recebe a constante cartasDuplicadas
+      const cartasEmbaralhadas = embaralharArray(cartasDuplicadas);
+      // Atualiza o estado uma vez com todas as cartas embaralhadas
+      setItens(cartasEmbaralhadas);
+      setNCartas(cartasEmbaralhadas);
+    };
+  
+    function embaralharArray(array) {
+      //Função que embaralha as cartas e é chamada em adicionarItens
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]]; // Troca os elementos de posição
+      }
+      return array;
     }
-
-    setItens([]); // Limpa o array de itens
-    setParesEncontrados([]); // Limpa os pares encontrados
-    setNCartas([]); //Limpa o numero de cartas
-
-    for (let n = 1; n <= maxCartas; n++) {
-      numCartas.push(`/figuras/figura${n}.png`); //Cria um array com valores unicos
-    }
-
-    // Duplicar as cartas (para um jogo de memória)
-    const cartasDuplicadas = [...numCartas, ...numCartas];
-
-    // Embaralha o array de cartas duplicadas, a função recebe a constante cartasDuplicadas
-    const cartasEmbaralhadas = embaralharArray(cartasDuplicadas);
-    // Atualiza o estado uma vez com todas as cartas embaralhadas
-    setItens(cartasEmbaralhadas);
-    setNCartas(cartasEmbaralhadas);
-  };
-
-  function embaralharArray(array) {
-    //Função que embaralha as cartas e é chamada em adicionarItens
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]]; // Troca os elementos de posição
-    }
-    return array;
+    
   }
 
   /*********** Mudar Nivel  */
   const mudarNivel = (event) => {
     const valor = parseInt(event.target.value, 10); //10 no final pois converte o numero na base 10
-    setNivel(valor);
+    if(isActive){
+      window.alert('NÃO É MPOSSIVEL MUDAR O SEU NÍVEL NO MOMENTO!')
+    }
+    else{
+      setNivel(valor);
+    }    
   };
 
   /***** Visibilidade e Dinâmica das cartas */
@@ -265,28 +331,32 @@ function GamePage() {
       </section>
 
       <section className="ranking">
-        <div className="colocados">
-          <h3 className="textRank">
+        <div>
+          <h2 className="textRank">
             <p>TOP 3 RANKING</p>
-          </h3>
-          
-          <ol>
-            <li>{data}</li>
-            <li></li>
-            <li></li>
-          </ol>
-
-
-
+          </h2>
+          {data && Array.isArray(data) ? (
+            data.map((item, index) => (
+              <div className="colocados" key={index}>
+                <p>Nome: {item.nome}</p>
+                <p>Tempo: {item.tempoFormatado}</p>
+                <p>Dificuldade: {item.dificuldade}</p>
+              </div> 
+            ))
+          ) : (
+            <p>nenhum dado disponível...</p>
+          )}
+          {/* 
           <p className="posicao" id="pos1">
-            1º -{data}
+            1º - {}
           </p>
           <p className="posicao" id="pos2">
-            2º -{" "}
+            2º - {" oii"}
           </p>
           <p className="posicao" id="pos3">
-            3º -{" "}
+            3º - {" "}
           </p>
+          */}
         </div>
       </section>
     </div>

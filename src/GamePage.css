@@ -51,13 +51,38 @@ body {
 
 .ranking {
     border: 1px solid black;
-    background: white;
+    background: #8513e2;
     border-radius: 10px;
     padding: 15px;
     width: 500px;
     margin: auto;
     margin-top: 100px;
     margin-bottom: 100px;
+    color: #8513e2;
+    font-weight: bold;
+    
+    
+}
+
+.textRank{    
+    text-align: center;
+    color: #ff0000;
+    text-shadow: 
+    -0.70px -0.70px 0 #ffffff,  
+    0.70px -0.70px 0 #ffffff,
+    -0.70px 0.70px 0 #ffffff,
+    0.70px 0.70px 0 #ffffff;
+}
+
+.colocados {
+    border: 1px solid black;
+    background: rgb(203, 99, 224);
+    border-radius: 10px;
+    padding: 15px;
+    width: auto;
+    margin: auto;
+    margin-top: 20px;
+    
 }
 
 .card {
